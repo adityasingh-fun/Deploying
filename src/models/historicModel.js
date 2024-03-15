@@ -1,7 +1,11 @@
+const { Timestamp } = require('mongodb');
 const mongoose = require('mongoose');
 const {Schema} = mongoose;
 
 const historicSchema = new mongoose.Schema({
+    Status: {
+        type: String
+    },
     Uid: {
         type: Number
     },
@@ -18,6 +22,15 @@ const historicSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.Mixed
     },
     PM25: {
+        type: mongoose.Schema.Types.Mixed
+    },
+    NO2: {
+        type: mongoose.Schema.Types.Mixed
+    },
+    SO2: {
+        type: mongoose.Schema.Types.Mixed
+    },
+    O3: {
         type: mongoose.Schema.Types.Mixed
     },
     Temperartue: {
