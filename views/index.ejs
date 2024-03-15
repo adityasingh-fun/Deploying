@@ -76,12 +76,16 @@
     <table id="example" class="table table-striped" style="width:100%">
         <thead>
             <tr>
+                <th>Status</th>
                 <th>UID</th>
                 <th>Location Name</th>
                 <th>AQI</th>
                 <th>Dominent Pollutent</th>
                 <th>PM10</th>
                 <th>PM25</th>
+                <th>NO2</th>
+                <th>SO2</th>
+                <th>O3</th>
                 <th>Temperature</th>
                 <th>Humidity</th>
                 <th>Station Name</th>
@@ -96,6 +100,9 @@
         <tbody>
             <% documents.forEach(document=> { %>
                 <tr>
+                    <td>
+                        <%= document.Status %>
+                    </td>
                     <td>
                         <%= document.Uid %>
                     </td>
@@ -113,6 +120,15 @@
                     </td>
                     <td>
                         <%= document.PM25 %>
+                    </td>
+                    <td>
+                        <%= document.NO2 %>
+                    </td>
+                    <td>
+                        <%= document.SO2 %>
+                    </td>
+                    <td>
+                        <%= document.O3 %>
                     </td>
                     <td>
                         <%= document.Temperartue %>
