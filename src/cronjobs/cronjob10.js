@@ -5,16 +5,16 @@ const axios = require("axios");
 const cron = require('node-cron');
 const moment = require('moment-timezone');
 
-mongoose.connect('mongodb+srv://chaudharyaditya41:Z67gI1uJnrGCnHuY@cluster0.jgngtnq.mongodb.net/testingAPIsDb7?retryWrites=true&w=majority', {
+mongoose.connect('mongodb+srv://chaudharyaditya41:Z67gI1uJnrGCnHuY@cluster0.jgngtnq.mongodb.net/testingAPIsDb9?retryWrites=true&w=majority', {
     usenewUrlParser: true,
     useUnifiedTopology: true
 })
-    .then(() => console.log("MongoDB11 is connected"))
+    .then(() => console.log("MongoDB10 is connected"))
     .catch(err => console.log(err))
 
 cron.schedule('0 * * * *', async () => {
     try {
-        const originalUrl = 'https://api.waqi.info/feed/geo:10.3;20.7/?token=7124b219cbdffcfa7e30e4e0745bc252b445fb2f';
+        const originalUrl = 'https://api.waqi.info/feed/@80/?token=7124b219cbdffcfa7e30e4e0745bc252b445fb2f';
         console.log("Coming into cronjob 10");
         let bulkOps = [];
         let historicDocuments = [];
@@ -22,6 +22,7 @@ cron.schedule('0 * * * *', async () => {
         // console.log(documents);
         console.log("Documents present in the AQI collection", documents.length);
         for (let i = 6300; i < 7000; i++) {
+            let Status = null;
             const latitude = documents[i]["latitude"];
             const longitude = documents[i]["longitude"];
             const _id = documents[i]["_id"];
@@ -35,7 +36,7 @@ cron.schedule('0 * * * *', async () => {
             const parsedUrl = new URL(originalUrl);
 
             // setting the latitude and longitude in the url
-            const newUrl = `feed/geo:${latitude};${longitude}/`;
+            const newUrl = `feed/@${Uid}/`;
 
             // update the path in parsed url
             parsedUrl.pathname = newUrl;
@@ -49,105 +50,177 @@ cron.schedule('0 * * * *', async () => {
             // console.log(dataFromAPI);
 
             let PM10 = null;
-            if (dataFromAPI.data.iaqi.hasOwnProperty('pm10')) {
-                PM10 = dataFromAPI.data.iaqi.pm10.v;
-            }
-            else {
-                PM10 = "NA";
-            }
-
             let PM25 = null;
-            if (dataFromAPI.data.iaqi.hasOwnProperty('pm25')) {
-                PM25 = dataFromAPI.data.iaqi.pm25.v;
-            }
-            else {
-                PM25 = "NA";
-            }
-
             let Temperartue = null;
-            if (dataFromAPI.data.iaqi.hasOwnProperty('t')) {
-                let number = dataFromAPI.data.iaqi.t.v;
-                Temperartue = Math.round(number);
-            }
-            else {
-                Temperartue = "NA";
-            }
-            // console.log("Temperature:",Temperartue);
             let Humidity = null;
-            if (dataFromAPI.data.iaqi.hasOwnProperty('h')) {
-                let number = dataFromAPI.data.iaqi.h.v;
-                Humidity = Math.round(number);
-            }
-            else {
-                Humidity = "NA";
-            }
-
-            // let time = dataFromAPI.data.time.iso;
-            const isoDateTime = dataFromAPI.data.time.iso;
-            const time = moment.tz(isoDateTime, 'Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
-
             let DominentPollutent = null;
-            if (dataFromAPI.data.hasOwnProperty('dominentpol')) {
-                DominentPollutent = dataFromAPI.data.dominentpol;
+            let AQI = null;
+            let NO2 = null;
+            let SO2 = null;
+            let O3 = null;
+            let time = null;
+
+            if (dataFromAPI.status == 'error') {
+                PM10 = "NA";
+                PM25 = "NA";
+                Temperartue = "NA";
+                Humidity = "NA";
+                DominentPollutent = "NA";
+                AQI = "NA";
+                NO2 = "NA";
+                SO2 = "NA";
+                O3 = "NA";
+                time = "NA";
+                Status = "Inactive";
+
+                const completeObj = { Status, AQI, DominentPollutent, PM10, PM25, NO2, SO2, O3, Temperartue, Humidity, time };
+                const historicObj = { Status, Uid, LocationName, AQI, DominentPollutent, PM10, PM25, NO2, SO2, O3, Temperartue, Humidity, StationName, CityName, StateName, Country, time, latitude, longitude };
+                historicDocuments.push(historicObj);
+                let upsertDoc = {
+                    'updateOne': {
+                        'filter': { _id: _id },
+                        'update': completeObj,
+                        'upsert': true
+                    }
+                };
+                // console.log(upsertDoc);
+                bulkOps.push(upsertDoc);
+                // console.log(updateDocument);
             }
             else {
-                DominentPollutent = "NA";
-            }
-            if (DominentPollutent == '') {
-                if (PM10 !== "NA" && PM25 !== "NA") {
-                    if (PM10 > PM25) {
-                        DominentPollutent = PM10;
-                    }
-                    else {
-                        DominentPollutent = PM25;
-                    }
+                Status = "Active";
+                // pm10
+                if (dataFromAPI.data.iaqi.hasOwnProperty('pm10')) {
+                    // console.log("pm10 key hai");
+                    PM10 = dataFromAPI.data.iaqi.pm10.v;
                 }
-                else if (PM10 == "NA" && PM25 != "NA") {
-                    DominentPollutent = "pm25";
+                else {
+                    PM10 = "NA";
                 }
-                else if (PM10 != "NA" && PM25 == "NA") {
-                    DominentPollutent = "pm10";
+
+                // pm25
+                if (dataFromAPI.data.iaqi.hasOwnProperty('pm25')) {
+                    // console.log("pm25 key hai");
+                    PM25 = dataFromAPI.data.iaqi.pm25.v;
+                }
+                else {
+                    PM25 = "NA";
+                }
+
+                // no2
+                if (dataFromAPI.data.iaqi.hasOwnProperty('no2')) {
+                    // console.log("pm25 key hai");
+                    NO2 = dataFromAPI.data.iaqi.no2.v;
+                }
+                else {
+                    NO2 = "NA";
+                }
+
+                // so2
+                if (dataFromAPI.data.iaqi.hasOwnProperty('so2')) {
+                    // console.log("pm25 key hai");
+                    SO2 = dataFromAPI.data.iaqi.so2.v;
+                }
+                else {
+                    SO2 = "NA";
+                }
+
+                // o3
+                if (dataFromAPI.data.iaqi.hasOwnProperty('o3')) {
+                    // console.log("pm25 key hai");
+                    O3 = dataFromAPI.data.iaqi.o3.v;
+                }
+                else {
+                    O3 = "NA";
+                }
+
+                // Temperature
+                if (dataFromAPI.data.iaqi.hasOwnProperty('t')) {
+                    // console.log("temperature key hai");
+                    let number = dataFromAPI.data.iaqi.t.v;
+                    Temperartue = Math.round(number);
+                }
+                else {
+                    Temperartue = "NA";
+                }
+                // Humidity
+                if (dataFromAPI.data.iaqi.hasOwnProperty('h')) {
+                    // console.log("humidity key hai");
+                    let number = dataFromAPI.data.iaqi.h.v;
+                    Humidity = Math.round(number);
+                }
+                else {
+                    Humidity = "NA";
+                }
+
+                // let time = dataFromAPI.data.time.iso;
+                const isoDateTime = dataFromAPI.data.time.iso;
+                time = moment.tz(isoDateTime, 'Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
+
+                // Dominent pollutent
+                if (dataFromAPI.data.hasOwnProperty('dominentpol')) {
+                    DominentPollutent = dataFromAPI.data.dominentpol;
                 }
                 else {
                     DominentPollutent = "NA";
                 }
-            }
-
-            let AQI = null;
-            if (dataFromAPI.data.hasOwnProperty('aqi')) {
-                AQI = dataFromAPI.data.aqi;
-            }
-            else {
-                AQI = "NA";
-            }
-
-            if (AQI == '-') {
-                if (PM10 != "NA" && PM25 != "NA") {
-                    AQI = Math.max(PM10, PM25);
+                if (DominentPollutent == '') {
+                    if (PM10 !== "NA" && PM25 !== "NA") {
+                        // DominentPollutent = "Not Available";
+                        if (PM10 > PM25) {
+                            DominentPollutent = PM10;
+                        }
+                        else {
+                            DominentPollutent = PM25;
+                        }
+                    }
+                    else if (PM10 == "NA" && PM25 != "NA") {
+                        DominentPollutent = "pm25";
+                    }
+                    else if (PM10 != "NA" && PM25 == "NA") {
+                        DominentPollutent = "pm10";
+                    }
+                    else {
+                        DominentPollutent = "NA";
+                    }
                 }
-                else if (PM10 == "NA" && PM25 != "NA") {
-                    AQI = PM25;
-                }
-                else if (PM10 != "NA" && PM25 == "NA") {
-                    AQI = PM10;
+
+                if (dataFromAPI.data.hasOwnProperty('aqi')) {
+                    AQI = dataFromAPI.data.aqi;
                 }
                 else {
-                    AQI = "NA"
+                    AQI = "NA";
                 }
+
+                if (AQI == '-') {
+                    if (PM10 != "NA" && PM25 != "NA") {
+                        AQI = Math.max(PM10, PM25);
+                    }
+                    else if (PM10 == "NA" && PM25 != "NA") {
+                        AQI = PM25;
+                    }
+                    else if (PM10 != "NA" && PM25 == "NA") {
+                        AQI = PM10;
+                    }
+                    else {
+                        AQI = "NA"
+                    }
+                }
+
+                const completeObj = { Status, AQI, DominentPollutent, PM10, PM25, NO2, SO2, O3, Temperartue, Humidity, time };
+                const historicObj = { Status, Uid, LocationName, AQI, DominentPollutent, PM10, PM25, NO2, SO2, O3, Temperartue, Humidity, StationName, CityName, StateName, Country, time, latitude, longitude };
+                historicDocuments.push(historicObj);
+                let upsertDoc = {
+                    'updateOne': {
+                        'filter': { _id: _id },
+                        'update': completeObj,
+                        'upsert': true
+                    }
+                };
+                // console.log(upsertDoc);
+                bulkOps.push(upsertDoc);
+                // console.log(updateDocument);
             }
-            const completeObj = { AQI, DominentPollutent, PM10, PM25, Temperartue, Humidity, time};
-            const historicObj = { Uid, LocationName, AQI, DominentPollutent, PM10, PM25, Temperartue, Humidity, StationName, CityName, StateName, Country, time, latitude, longitude};
-            historicDocuments.push(historicObj);
-            let upsertDoc = {
-                'updateOne': {
-                    'filter': { _id: _id },
-                    'update': completeObj,
-                    'upsert': true
-                }
-            };
-            // console.log(upsertDoc);
-            bulkOps.push(upsertDoc);
-            // console.log(updateDocument);
         }
         const result = await historicModel.insertMany(historicDocuments);
         // console.log(result);
