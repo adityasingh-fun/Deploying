@@ -1,12 +1,11 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const axios = require('axios');
 const aqiModel = require('./models/aqi_inModel');
-const ejs = require('ejs');
+require('dotenv').config();
 // const dotenv = require('dotenv').config();
 // const {MONGODB_URI} = process.env;
 
-// const route = require('./route/route');
+const route = require('./route/route');
 const mongoose = require('mongoose');
 
 const app = express();
@@ -24,7 +23,7 @@ mongoose.connect('mongodb+srv://chaudharyaditya41:Z67gI1uJnrGCnHuY@cluster0.jgng
     .catch(err => console.log(err))
 
 
-// app.use('/', route);
+app.use('/', route);
 
 // app.get('/',(req,res)=>{
 //     res.send("Working")
@@ -37,6 +36,6 @@ app.get('/', async (req,res)=>{
     res.render('index',{documents});
 })
 
-app.listen(process.env.PORT || 4000, function () {
+app.listen(process.env.PORT || 3000, function () {
     console.log('Express app running on Port', (process.env.PORT || 4000))
 });
