@@ -21,7 +21,7 @@ cron.schedule('30 * * * *', async () => {
         const documents = await aqiModel.find();
         // console.log(documents);
         console.log("Documents present in the AQI collection", documents.length);
-        for (let i = 4700; i < 5600; i++) {
+        for (let i = 4900; i < 5600; i++) {
             let Status = null;
             const latitude = documents[i]["latitude"];
             const longitude = documents[i]["longitude"];
