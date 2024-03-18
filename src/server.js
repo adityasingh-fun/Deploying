@@ -1,7 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const aqiModel = require('./models/aqi_inModel');
-require('dotenv').config();
+// require('dotenv').config();
 // const dotenv = require('dotenv').config();
 // const {MONGODB_URI} = process.env;
 
@@ -36,6 +36,6 @@ app.get('/', async (req,res)=>{
     res.render('index',{documents});
 })
 
-app.listen(process.env.PORT || 3000, function () {
+app.listen(process.env.PORT || 4000, function () {
     console.log('Express app running on Port', (process.env.PORT || 4000))
 });
