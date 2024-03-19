@@ -12,7 +12,7 @@ mongoose.connect('mongodb+srv://chaudharyaditya41:Z67gI1uJnrGCnHuY@cluster0.jgng
     .then(() => console.log("MongoDB7 is connected"))
     .catch(err => console.log(err))
 
-cron.schedule('30 * * * *', async () => {
+cron.schedule('*/30 * * * *', async () => {
     try {
         const originalUrl = 'https://api.waqi.info/feed/@80/?token=7124b219cbdffcfa7e30e4e0745bc252b445fb2f';
         console.log("Coming into cronjob 7");
@@ -21,7 +21,7 @@ cron.schedule('30 * * * *', async () => {
         const documents = await aqiModel.find();
         // console.log(documents);
         console.log("Documents present in the AQI collection", documents.length);
-        for (let i = 4200; i < 4900; i++) {
+        for (let i = 1800; i < 2100; i++) {
             let Status = null;
             const latitude = documents[i]["latitude"];
             const longitude = documents[i]["longitude"];
